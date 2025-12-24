@@ -1,0 +1,12 @@
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.synctex.gz
+*.tex
+*.RData
+*.Rhistory
+.DS_Store
+Thumbs.db

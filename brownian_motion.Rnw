@@ -1,0 +1,226 @@
+\documentclass[fleqn]{article}
+\usepackage{amsmath} 
+\usepackage{amssymb} 
+\usepackage{graphicx} 
+\usepackage{hyperref} 
+\usepackage{natbib}
+
+\title{Brownian Motion and Brownian Bridge Construction\\
+\Large{Final Project of Group 1}}
+\author{Markus Sidorenko, Luka Bartyenyev,\\ Bischoy Bert, Marc Zirling}
+\date{December 9, 2024}
+
+
+\begin{document} 
+
+\maketitle
+
+
+            
+\newpage
+
+\section{Brownian Motion and Wiener Process}
+
+In financial engineering, stochastic processes play a crucial role in modeling the behavior of stock prices in financial markets. The simplest one is the so-called Brownian motion. It is used in the celebrated Black-Scholes model to model the logarithms of stock prices.
+
+A standardized \textit{Brownian motion} \( W(t) \) (called a \textit{Wiener process}) is a continuous-time stochastic process (i.e., a random path) with the property:
+
+\begin{enumerate}
+    \item \( W(0) = 0, \text{ a.s.} \)
+    \item \( W \) has independent increments: for every \( s, t > 0 \), the future increments \( W_{t+s} - W_t \) are independent of \( W_t \).
+    \item \( W_{t+s} - W_t \) is normally distributed with mean 0 and variance \( s \), \( W_{t+s} - W_t \sim \mathcal{N}(0, s) \).
+    \item \( W_t \) is continuous in \( t \) with probability 1.
+\end{enumerate}
+
+For \( \mu \) and \( \sigma > 0 \), we call a process \( X(t) \) a \textit{Brownian motion} with drift \( \mu \) and diffusion coefficient \( \sigma^2 \) (abbreviated by \( X \sim BM(\mu, \sigma^2) \)) if
+\[
+\frac{X(t) - \mu t}{\sigma}
+\]
+is a Wiener process. Thus, we construct \( X \) from a Wiener process \( W \) by:
+\[
+X(t) = \mu t + \sigma W(t).
+\]
+
+\section{Random Walk Construction}
+
+When we work with Wiener processes (and Brownian motions), we need numerical approximations in order to sample paths. That is, for a fixed set of points \( 0 < t_1 < t_2 < \ldots < t_n \), we need to simulate values \( (W(t_1), W(t_2), \dots, W(t_n)) \). Since the increments of a Brownian motion are independent and normally distributed, such a simulation is straightforward:
+\[
+W(t_{i+1}) = W(t_i) + \sqrt{t_{i+1} - t_i} Z_{i+1}
+\]
+where \( Z_i \sim \mathcal{N}(0, 1) \) are standard normally distributed variables.
+
+We restrict our simulation to equidistributed points, i.e., we assume that:
+\[
+t_{i+1} - t_i = \delta t \quad \text{is constant for all } i.
+\]
+
+Thus, we obtain an approximate realization of a Wiener process using the
+\textit{Euler--Maruyama scheme}, where the increments
+\[
+\delta W(t) = W(t + \delta t) - W(t)
+\]
+are normally distributed with mean 0 and variance \( \delta t \).
+This leads to the following procedure for constructing a discrete
+approximation of the Wiener path at points \( t_i = i\,\delta t \):
+
+
+
+
+\begin{enumerate}
+    \item Fix \( \delta t \).
+    \item Start with \( W(0) \gets 0, t_0 \gets 0, i \gets 0 \).
+    \item Repeat:
+    \begin{enumerate}
+        \item Generate \( Z \sim \mathcal{N}(0, 1) \).
+        \item \( t_{i+1} \gets t_i + \delta t \).
+        \item \( W(t_{i+1}) \gets W(t_i) + \sqrt{\delta t} Z \).
+        \item \( i \gets i + 1 \).
+    \end{enumerate}
+\end{enumerate}
+
+\section{Brownian Bridge}
+
+Let \( T \) be the time horizon for our simulation, i.e., \( t_n = T \). Then the stochastic process:
+\[
+B(t) = W(t) - \frac{t}{T} W(T)\tag{1}
+\]
+is a Wiener process that is pinned to value 0 at both \( t = 0 \) and \( t = T \)
+\[
+B(t) = \big( W(t) \,|\, W(T) = 0 \big), \quad t \in [0, T]
+\]
+It is called a \textit{Brownian bridge}. It has similar properties as a Wiener process. In particular, increments are normal distributed. Notice, however, that increments are not independent. Moreover, one finds \( B(t) \) has mean 0 and variance
+\[
+\frac{t(T-t)}{T},
+\]
+i.e.,
+\[
+B(t) \sim \mathcal{N} \left( 0, \frac{t(T-t)}{T} \right) \tag{2}
+\]
+
+In particular, we find:
+\[
+B(T/2) \sim \mathcal{N} \left( 0, \frac{T}{4} \right) \tag{3}
+\]
+
+\section{Brownian Bridge Construction}
+
+The \textit{Brownian bridge construction} is a way to simulate Brownian motion paths by successively adding finer scale detail.
+
+From relation (1), we can derive a construction for the Wiener process:
+\[
+W(t) = B(t) + t Z,
+\]
+where \( Z \sim \mathcal{N}(0, 1) \) is a standard normally distributed random variable.
+
+These relations can be used to simulate a Wiener process. We have simulated \( W(T) \) first. Now the Wiener process is fixed at \( t_0 = 0 \) and \( t_2 = T \). Now we use the Brownian bridge to sample at \( t_1 = T/2 \):
+\[
+W(0) = 0, \quad W(T) = \sqrt{T} Z \sim \mathcal{N}(0, T),
+\]
+\[
+W(T/2) \sim \mathcal{N} \left( 0, \frac{T}{4} \right) + \frac{1}{2} W(T).
+\]
+
+This idea can be extended. Suppose the values \( W(t_i) = w_i \) of the Brownian path have already been determined for points \( t_i \). Now we wish to “interpolate” between these points. So let \( t \in (t_i, t_{i+1}) \). Then we obtain from the above idea that \( W(t) \), conditional to \( W(t_i) = w_i \) and \( W(t_{i+1}) = w_{i+1} \), has distribution:
+
+\begin{align}
+&W(t) \,|\, W(t_i) = w_i,\tag{4}\\ &W(t_{i+1}) = w_{i+1} \sim \mathcal{N} \left(
+\frac{(t_{i+1} - t)w_i + (t - t_i)w_{i+1}}{t_{i+1} - t_i}, \frac{(t_{i+1} - t)(t - t_i)}{t_{i+1} - t_i}
+\right)\tag{5}\label{dist}
+\end{align}
+
+We now can use distribution (\ref{dist}) to construct a Wiener process recursively when the number of constructed time intervals is a power of 2 and represents a so-called "level" of the Brownian Bridge as described by \cite{Goodman:2011}. Using the midpoint displacement method we iteratively add the midpoint in each interval \( (t_i, t_{i+1}) \):
+
+\begin{enumerate}
+    \item \( W(0) \gets 0 \) and generate \( W(T) \sim \mathcal{N}(0, T) \).
+    \item Repeat:
+    \begin{enumerate}
+        \item For all intervals \( (t_i, t_{i+1}) \):
+        \item \( t \gets (t_i + t_{i+1}) / 2 \).
+        \item \( m \gets \frac{t_{i+1}-t}{t_{i+1}-t_i}W(t_i) + \frac{t-t_i}{t_{i+1}-t_i}W(t_{i+1}) \).
+        \item \( s \gets \frac{(t_{i+1}-t)(t-t_i)}{t_{i+1}-t_i} \).
+        \item Generate \( W(t) \sim \mathcal{N}(m, s) \).
+    \end{enumerate}
+    \item Update set of time points \( \{t_i\} \) and values \( \{W(t_i)\} \).
+\end{enumerate}
+
+We further use the implementation of this method in R to show the increasing details when the number of intervals is increased from \( 2^1 \) to \( 2^{10} \).
+\newpage
+\section*{Implementation in R}
+<<>>=
+wiener.path<-function(n,Time,plot=TRUE){
+  dt<-Time/n
+  X<-c(0,rnorm(n,0,sqrt(dt)))
+  W_t<-cumsum(X)
+  
+  if (plot){
+    plot(seq(0,Time,by=dt),W_t,type="l",
+    xlab="Time",ylab="W", main="Wiener process")
+  }
+}
+@
+<<echo=FALSE, fig.height=5>>=
+    set.seed(10)
+    wiener.path(1200,1200)
+@
+
+
+<<>>=
+bridge.path<-function(m,Time,plot=TRUE){
+  n<-2^m  
+  
+  t_pts<-c(0,Time)
+  W_pts<-c(0,rnorm(1,0,sqrt(Time)))
+  
+  while(length(t_pts) < n+1){
+    
+    new_t_pts<-c()
+    new_W_pts<-c()
+    
+    for (i in seq_along(t_pts[-length(t_pts)])){
+      t1<-t_pts[i]
+      t2<-t_pts[i+1]
+      W1<-W_pts[i]
+      W2<-W_pts[i+1]
+      
+      t<-(t1+t2)/2
+      
+      mu<-((t2-t)*W1+W2*(t-t1))/(t2-t1)
+      s<-sqrt((t2-t)*(t-t1)/(t2-t1))
+      
+      Wt<-rnorm(1,mu,s)
+      
+      new_t_pts<-c(new_t_pts,t1,t)
+      new_W_pts<-c(new_W_pts,W1,Wt)
+      
+    }
+    t_pts<-c(new_t_pts,tail(t_pts,1))
+    W_pts<-c(new_W_pts,tail(W_pts,1))
+  }
+  if (plot){
+    plot(t_pts, W_pts, type = "l", col = "blue",
+        main = paste("Brownian Bridge of Level",m),
+        xlab = "Time", ylab = "W(t)")
+    lines(c(0,tail(t_pts,1)),c(0,tail(W_pts,1)),
+    col = "red", lty = 2)
+  }
+  
+  if (!plot) {
+    return(cbind(t_pts, W_pts))
+  }
+  
+}
+
+@
+
+
+<<echo=FALSE,fig.width=6, fig.height=4.5>>=
+for (i in 1:10){
+set.seed(13)
+bridge.path(i,240)
+}
+@
+
+\bibliographystyle{apalike}
+\bibliography{ref}
+
+\end{document}
