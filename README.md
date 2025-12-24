@@ -15,3 +15,10 @@ This paper is fully reproducible. To generate the PDF from the source:
 1. Open 'brownian_motion.Rnw' in RStudio
 2. Click *Compile PDF*
 
+
+## Authors
+Markus Sidorenko
+Luka Bartyenyev
+Bischoy Bert
+Marc Zierling
+
